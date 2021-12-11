@@ -1,0 +1,275 @@
+@media screen and (max-width: 768px) {
+  .home-main {
+    width: 100%;
+    height: 1000px;
+    background-size: 100% 100%;
+    line-height: normal;
+    background-image: url('../../static/images/home/phone_background.png');
+    .home-logo-img-pc {
+      display: none !important;
+    }
+    .home-logo-img-phone {
+      display: initial !important;
+      width: 50%;
+      margin-top: 1rem;
+    }
+    .nav-bar {
+      display: none;
+    }
+    .view-sub-left-content,
+    .view-sub-right-content {
+      width: 100%;
+      background-image: url('../../static/images/home/content_bg.png');
+      background-position: center top;
+      height: 450px;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+    }
+    .txt-sub-title {
+      font-size: 15px;
+      color: black;
+      font-weight: bold;
+      text-align: center;
+      padding-top: 75px;
+      width: 60%;
+      margin-left: 19%;
+      margin-right: 21%;
+    }
+    .txt-sub-desc {
+      font-size: 10px;
+      color: black;
+      font-weight: normal;
+      text-align: center;
+      width: 60%;
+      margin-left: 19%;
+      margin-right: 21%;
+    }
+    .pc-google-play {
+      display: none;
+    }
+    .phone-google-play {
+      display: initial;
+      width: 100%;
+      cursor: pointer;
+    }
+    .btn-google-desc-txt {
+      width: 85%;
+      font-size: 10px;
+      font-weight: bold;
+      text-align: left;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .black-box {
+      width: 64%;
+      margin-left: 17%;
+      margin-right: 19%;
+      background-color: black;
+      display: flex;
+      height: 50px;
+      margin-top: 20px;
+    }
+    .home-content {
+      width: 100%;
+      height: auto;
+    }
+    .btn-desc-txt {
+      width: 90%;
+      font-size: 10px;
+      font-weight: bold;
+      text-align: left;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-desc {
+      width: 50%;
+      text-align: center;
+      color: white;
+      display: flex;
+      text-align: center;
+      align-items: center;
+    }
+    .sub-content {
+      width: 100%;
+    }
+    .login-btn {
+      width: 40%;
+      margin-right: 5%;
+      margin-left: 5%;
+      text-align: center;
+      background-image: url('../../static/images/home/register_btn.png');
+      background-size: 100% 100%;
+      font-size: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      height: 50%;
+      display: flex;
+      align-items: center;
+      div {
+        width: 100%;
+        text-align: center;
+      }
+    }
+    .bottom-nav {
+      position: relative;
+      width: 100%;
+      bottom: 0;
+      .bottom-content {
+        display: flex;
+        width: 270px;
+        margin-left: auto;
+        margin-right: auto;
+        button {
+          padding: 0;
+          min-width: unset;
+          font-size: 13px;
+        }
+        img {
+          height: 40px;
+        }
+      }
+    }
+  }
+  //phone_content
+}
+@media screen and (min-width: 769px) {
+  .home-main {
+    width: 100%;
+    height: 100%;
+    background-size: 100% 100%;
+    line-height: normal;
+    background-image: url('../../static/images/home/background1.png');
+    .home-logo {
+      width: 100%;
+      text-align: center;
+      .home-logo-img-pc {
+        display: initial;
+      }
+      .home-logo-img-phone {
+        display: none;
+      }
+    }
+    .nav-bar {
+      display: block;
+    }
+    .view-sub-left-content,
+    .view-sub-right-content {
+      width: 65%;
+      margin-left: 0;
+      margin-right: 0;
+      background-image: url('../../static/images/home/content_bg.png');
+      background-position: center top;
+      height: 100%;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+    }
+    .view-sub-left-content {
+      margin-left: 30%;
+      margin-right: 5%;
+    }
+    .view-sub-right-content {
+      margin-left: 5%;
+      margin-right: 30%;
+    }
+    .txt-sub-title {
+      font-size: 25px;
+      color: black;
+      font-weight: bold;
+      text-align: center;
+      padding-top: 20%;
+      width: 60%;
+      margin-left: 19%;
+      margin-right: 21%;
+    }
+    .txt-sub-desc {
+      font-size: 15px;
+      color: black;
+      font-weight: normal;
+      text-align: center;
+      width: 60%;
+      margin-left: 19%;
+      margin-right: 21%;
+      overflow-y: auto;
+      height: calc(100% - 23rem);
+    }
+    .pc-google-play {
+      display: initial;
+      width: 100%;
+    }
+    .phone-google-play {
+      display: none;
+    }
+    .btn-google-desc-txt {
+      width: 85%;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      margin-left: auto;
+      margin-right: auto;
+      cursor: pointer;
+    }
+    .black-box {
+      width: 64%;
+      margin-left: 17%;
+      margin-right: 19%;
+      background-color: black;
+      display: flex;
+      height: 80px;
+      margin-top: 1rem;
+    }
+    .home-content {
+      width: 100%;
+      height: 70%;
+      display: flex;
+    }
+    .btn-desc-txt {
+      width: 90%;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-desc {
+      width: 50%;
+      text-align: center;
+      color: white;
+      display: flex;
+      text-align: center;
+      align-items: center;
+    }
+    .sub-content {
+      width: 50%;
+      height: 100%;
+    }
+    .login-btn {
+      width: 40%;
+      margin-right: 5%;
+      margin-left: 5%;
+      text-align: center;
+      background-image: url('../../static/images/home/register_btn.png');
+      background-size: 100% 100%;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      height: 50%;
+      display: flex;
+      align-items: center;
+      div {
+        width: 100%;
+        text-align: center;
+      }
+    }
+    .bottom-nav {
+      position: absolute;
+      width: 100%;
+      bottom: 0;
+      .bottom-content {
+        display: flex;
+        width: 25%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+  }
+}
