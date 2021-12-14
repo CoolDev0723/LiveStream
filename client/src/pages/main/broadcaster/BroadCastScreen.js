@@ -6,6 +6,7 @@ import { broadcasterEventApi } from '../../../apis/broadcasterEventApi';
 import { WebRTCAdaptor } from './../../../lib/webrtc-js/webrtc_adaptor';
 import { useLocation } from 'react-router-dom';
 import './index.scss';
+import AudioAnalyser from './AudioAnalyser';
 
 var newWebRTCAdapter = null;
 var isBack = false;
@@ -17,6 +18,8 @@ const BroadCastHome = () => {
   const { state } = useLocation();
   const [streamId, setStreamID] = useState(state ? state.streamId : '');
   const [selectedEvent] = useState(state ? state.selectedEvent : '');
+  const [audio, setAudio] = useState(null);
+  const [viewerCount, setViewerCount] = useState(0);
 
   const pc_config = {
     iceServers: [
@@ -131,16 +134,27 @@ const BroadCastHome = () => {
       return onEndPublish();
     });
 
+    const checkViewerCountInterval = setInterval(async()=>{
+      const curViewerCount = await broadcasterEventApi.getViewerCounter(streamId);
+      setViewerCount(curViewerCount);
+    }, 1000 * 3);
+
     return () => {
       isUnMounted = true;
       onEndPublish();
+      clearInterval(checkViewerCountInterval);
     };
   }, []);
 
-  const onStartPublish = () => {
+  const onStartPublish = async() => {
     if (newWebRTCAdapter) {
       newWebRTCAdapter.publish(streamId);
     }
+    const audio = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: false
+    });
+    setAudio(audio);
   };
 
   const startPublish = async () => {
@@ -203,15 +217,21 @@ const BroadCastHome = () => {
                 <audio id="localVideo" controls muted></audio>
               </p>
               {isPublishing ? (
-                <Button
-                  color={'error'}
-                  type="submit"
-                  variant="contained"
-                  sx={{ height: 40, mr: 6 }}
-                  onClick={goBack}
-                >
-                  End Publishing
-                </Button>
+                <>
+                  <Button
+                    color={'error'}
+                    type="submit"
+                    variant="contained"
+                    sx={{ height: 40, mr: 6 }}
+                    onClick={goBack}
+                  >
+                    End Publishing
+                  </Button>
+                  <div>
+                    <AudioAnalyser audio={audio} />
+                  </div>
+                  <div>Number of listeners : <span style={{color:viewerCount > 0 ? "red" : ""}}>{viewerCount}</span></div>
+                </>
               ) : (
                 <Button
                   color="primary"

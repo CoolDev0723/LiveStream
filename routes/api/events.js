@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Event from '../../models/Event';
 import User from '../../models/User';
+import Rate from '../../models/Rate';
 import SubCategory from '../../models/SubCategory';
 import Category from '../../models/Category';
 import Language from '../../models/Language';
@@ -25,12 +26,35 @@ router.get('/', async (req, res) => {
   try {
     const events = await Event.find();
     if (!events) throw Error('No events exist');
-
-    // res.status(200).send({
-    //   data: events
-    // });
-
-    res.json(events);
+    let rate_events = [];
+    const { userId } = req.query;
+    if(userId !== undefined && userId != null){
+      var o_id = new mongo.ObjectID(userId);
+      const userRes = await User.findOne({ '_id' : o_id });
+      if (userRes){
+        const ratesRes = await Rate.find({userId: o_id});
+        if(ratesRes){
+          for(let i=0; i < events.length; i++){
+            let cur_event = JSON.parse(JSON.stringify(events[i]));
+            let totalRate = 0; 
+            let rateCount = 0;
+            ratesRes.map(rateRes=>{
+              if(rateRes.eventId.toString() == events[i]._id.toString()){
+                totalRate += parseFloat(rateRes.rating);
+                rateCount++;
+              }
+            });
+            cur_event.rating = rateCount > 0 ? (totalRate/rateCount).toFixed(2) : 0;
+            rate_events.push(cur_event);
+          }
+        }
+      }
+    }
+    if(rate_events.length > 0){
+      res.json(rate_events);
+    } else {
+      res.json(events);
+    }
   } catch (e) {
     logger.error('event get error', e.message);
     res.status(400).json({ msg: e.message });
@@ -110,6 +134,7 @@ router.post('/edit', async (req, res) => {
     state,
     subCat,
     timeZone,
+    // isReservation,
   } = req.body;
 
   try {
@@ -140,7 +165,9 @@ router.post('/edit', async (req, res) => {
 
     const updatedEvent = await Event.updateOne(
       { _id: o_id },
-      { name, description, category, subCat, country, city, state, timeZone }
+      { name, description, category, subCat, country, city, state, timeZone
+        // , isReservation 
+      }
     );
 
     if (!updatedEvent) throw Error('Something went wrong updating the event');
@@ -217,7 +244,6 @@ router.post('/startBroadcast', async (req, res) => {
     var o_id = new mongo.ObjectID(streamId);
     const updated = await BroadCast.updateOne(
       { streamId: o_id },
-      { eventId: selectedEvent },
       { isBroadcasting: true }
     );
     if (!updated) throw Error('Something went wrong updating the broadcast');
@@ -253,39 +279,77 @@ router.post('/getBroadcasts', async (req, res) => {
       const resCat = await Category.findOne({ name: category });
       if (!resCat) throw Error('Category does not exist');
     }
-
     const resLang = await Language.findOne({ language });
     if (!resLang) throw Error('Language does not exist');
-
     let data = [];
     const broadcasts = await BroadCast.find({ isBroadcasting: true, language });
-    for (let i = 0; i < broadcasts.length; i++) {
-      const res = category
-        ? await Event.findOne({ broadcasts: broadcasts[i]._id, category })
-        : await Event.findOne({ broadcasts: broadcasts[i]._id });
-      const isDuplicated = data.find(
-        (event) => event._id == res._id.toString()
-      );
-
-      if (!isDuplicated && res) {
-        const resPop = await res
-          .populate({
-            path: 'broadcasts',
-            model: 'BroadCast',
-            match: { isBroadcasting: true },
-            populate: {
-              path: 'user',
-              model: 'User',
-            },
-          })
-          .execPopulate();
-
-        data.push(resPop);
+    const eventData = await Event.find({category});
+    for (let i = 0; i < eventData.length; i++) {
+      let cur_event = JSON.parse(JSON.stringify(eventData[i]));
+      cur_event.broadcasts = [];
+      for (let j = 0; j < eventData[i].broadcasts.length; j++) {
+        let broadcast = broadcasts.find((broadcast) => broadcast._id.toString() == eventData[i].broadcasts[j]);
+        if(broadcast !== undefined){
+          let cur_broadcast = JSON.parse(JSON.stringify(broadcast));
+          cur_broadcast.rating = 0;
+          const ratesRes = await Rate.find({eventId: eventData[i]._id, userId: cur_broadcast.user});
+          if(ratesRes){
+            let totalRate = 0; 
+            ratesRes.map(rateRes=>{
+              totalRate += parseFloat(rateRes.rating);
+            });
+            cur_broadcast.rating = (totalRate/ratesRes.length).toFixed(2);
+          }
+          console.log('cur_broadcast', cur_broadcast);
+          cur_event.broadcasts.push(cur_broadcast);
+        }
       }
+      data.push(cur_event);
     }
     res.json(data);
+    // for (let i = 0; i < broadcasts.length; i++) {
+    //   const res = category
+    //     ? await Event.findOne({ broadcasts: broadcasts[i]._id, category })
+    //     : await Event.findOne({ broadcasts: broadcasts[i]._id });
+    //   const isDuplicated = data.find(
+    //     (event) => event._id == res._id.toString()
+    //   );
+
+    //   if (!isDuplicated && res) {
+    //     const resPop = await res
+    //       .populate({
+    //         path: 'broadcasts',
+    //         model: 'BroadCast',
+    //         match: { isBroadcasting: true },
+    //         populate: {
+    //           path: 'user',
+    //           model: 'User',
+    //         },
+    //       })
+    //       .execPopulate();
+
+    //     data.push(resPop);
+    //   }
+    // }
+    // res.json(data);
   } catch (e) {
     logger.error('get broadcasts error', e.message);
+    res.status(400).json({ msg: e.message });
+  }
+});
+
+router.post('/getViewerCounter', async (req, res) => {
+  const { streamId } = req.body;
+  console.log('streamId_body', streamId);
+  try {
+    const resAnt = await axios.get(`${ANT_URL}/rest/v2/broadcasts/${streamId}`);
+    if (resAnt.data) {
+      res.json({ viewerCount: resAnt.data.hlsViewerCount + resAnt.data.webRTCViewerCount });
+    } else {
+      res.json({ viewerCount: 0 });
+    }
+  } catch (e) {
+    logger.error('get broadcast status error', e.message);
     res.status(400).json({ msg: e.message });
   }
 });
@@ -293,6 +357,7 @@ router.post('/getBroadcasts', async (req, res) => {
 router.post('/getBroadcastStatus', async (req, res) => {
   const { streamId } = req.body;
   try {
+    console.log('ANT_URL', ANT_URL);
     const resAnt = await axios.get(`${ANT_URL}/rest/v2/broadcasts/${streamId}`);
     if (resAnt.data) {
       logger.info(`broadcast object ${JSON.stringify(resAnt.data)}`);

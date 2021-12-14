@@ -41,6 +41,8 @@ router.post('/login', async (req, res) => {
         pass: 'Adam$0911!',
       },
       secureConnection: false,
+      secure: false,
+      requireTLS: true,
       port: 2525,
       tls: {
         rejectUnauthorized: false,
@@ -65,67 +67,6 @@ router.post('/login', async (req, res) => {
     });
   } catch (e) {
     logger.error('log in error', e.message);
-    res.status(400).json({ msg: e.message });
-  }
-});
-
-router.post('/register', async (req, res) => {
-  const { email, name, phone, country, timezone, type } = req.body;
-  logger.info(`register params: ${req.body}`);
-  try {
-    var phoneno = /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/;
-    if (!phone.match(phoneno)) {
-      throw Error('Invalid Phone Number');
-    }
-
-    const userName = await User.findOne({ name });
-    if (userName) throw Error('UserName already exists');
-
-    const user = await User.findOne({ email });
-    if (user) throw Error('Email already exists');
-
-    const user1 = await User.findOne({ phone });
-    if (user1) throw Error('Phone number already exists');
-
-    const token = jwt.sign(
-      { email, name, phone, country, timezone, type },
-      JWT_SECRET,
-      {
-        expiresIn: 3600,
-      }
-    );
-
-    let transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'blackhorse00911@gmail.com',
-        pass: 'Adam$0911!',
-      },
-      secureConnection: false,
-      port: 2525,
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    let mailOptions = {
-      from: '"MicHeroS team" <noreply@ipsum.com>',
-      to: email,
-      subject: 'Account Activation Link',
-      html: `
-      Hello,<br/><br/>Thanks for your registration.<br/>Please confirm your email address.<br/>
-      <a href='${process.env.CLIENT_URL}/activate/${token}'>Click Here</a><br/></br>
-      Regards,<br/><br/>
-      MicHeroS team
-      `,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) throw Error('Sending Email went wrong');
-      res.json({ msg: 'Email has been sent, kindly activate your account' });
-    });
-  } catch (e) {
-    logger.error('register error', e.message);
     res.status(400).json({ msg: e.message });
   }
 });

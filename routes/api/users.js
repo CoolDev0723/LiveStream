@@ -47,9 +47,19 @@ router.get('/rate', async (req, res) => {
     const userRes = await User.findOne({ '_id' : o_id });
     if (!userRes) throw Error('User does not exist');
 
-    const rateRes = await Rate.findOne({eventId : o_eventId, userId: o_id})
-    if (!rateRes) throw Error('Rate does not exist');
-    res.json(rateRes);
+    // const rateRes = await Rate.findOne({eventId : o_eventId, userId: o_id})
+    // if (!rateRes) throw Error('Rate does not exist');
+    // res.json(rateRes);
+    const ratesRes = await Rate.find({eventId : o_eventId, userId: o_id});
+    let rating = 0;
+    if(ratesRes.length > 0){
+      let totalRate = 0; 
+      ratesRes.map(rateRes=>{
+        totalRate += parseFloat(rateRes.rating);
+      });
+      rating = (totalRate/ratesRes.length).toFixed(2);
+    }
+    res.json({rating});
   } catch (e) {
     logger.error('get rate error', e.message)
     res.status(400).json({ msg: e.message });
@@ -91,22 +101,27 @@ router.post('/rateUser', async (req, res) => {
     const userRes = await User.findOne({ '_id' : o_id });
     if (!userRes) throw Error('User does not exist');
 
-    const rateRes = await Rate.findOne({eventId : o_eventId, userId: o_id})
-    if(rateRes){
-      let ratingValue = ""
-      if(rateRes.rating){
-        ratingValue = ((parseFloat(rating) + parseFloat(rateRes.rating))/2).toFixed(2).toString()
-      }else{
-        ratingValue = rating
-      }
-      await Rate.updateOne({'_id': rateRes._id}, { rating: ratingValue })
-    }else{
-      const newRate = new Rate({
-        eventId, userId, rating
-      });
-      const resRate = await newRate.save();
-      if (!resRate) throw Error('Something went wrong adding the rate');
-    }
+    // const rateRes = await Rate.findOne({eventId : o_eventId, userId: o_id})
+    // if(rateRes){
+    //   let ratingValue = ""
+    //   if(rateRes.rating){
+    //     ratingValue = ((parseFloat(rating) + parseFloat(rateRes.rating))/2).toFixed(2).toString()
+    //   }else{
+    //     ratingValue = rating
+    //   }
+    //   await Rate.updateOne({'_id': rateRes._id}, { rating: ratingValue })
+    // }else{
+    //   const newRate = new Rate({
+    //     eventId, userId, rating
+    //   });
+    //   const resRate = await newRate.save();
+    //   if (!resRate) throw Error('Something went wrong adding the rate');
+    // }
+    const newRate = new Rate({
+      eventId, userId, rating
+    });
+    const resRate = await newRate.save();
+    if (!resRate) throw Error('Something went wrong adding the rate');
     res.status(200).json({success : true});
    
   } catch (e) {

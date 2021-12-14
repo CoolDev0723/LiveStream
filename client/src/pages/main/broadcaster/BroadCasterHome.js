@@ -4,39 +4,20 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import * as moment from 'moment/moment'
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Select from '@material-ui/core/Select';
-import Input from '@material-ui/core/Input';
-import Slide from '@material-ui/core/Slide';
-import {
-  Box,
-  Card,
-  InputAdornment,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  TablePagination,
-  Button
+import {Dialog, DialogActions, DialogContent, DialogTitle, Select, Input, Slide, Box, Card, InputAdornment, IconButton, Table,
+  TableBody, TableCell, TableHead, TableRow, TextField, TablePagination, Button, Typography
+  // , Checkbox
 } from '@material-ui/core';
-
 import useMounted from '../../../hooks/useMounted';
 import {broadcasterEventApi} from '../../../apis/broadcasterEventApi';
 import gtm from '../../../lib/gtm';
-
 import Scrollbar from '../../../components/Scrollbar';
 import SearchIcon from '../../../icons/Search';
 import EditIcon from '../../../icons/EditIcon';
 import RecordIcon from '../../../icons/RecordIcon';
 import { useMediaQuery } from 'react-responsive'
 import Rating from '@material-ui/lab/Rating';
-import Typography from '@material-ui/core/Typography';
+// import { adminEventApi } from '../../../apis/adminEventApi';
 
 const BroadCasterHome = () => {
   const mounted = useMounted();
@@ -45,34 +26,30 @@ const BroadCasterHome = () => {
   const [page, setPage] = useState(0);
   const [limit, setLimit] = useState(10);
   const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState({
-    status: null
-  });
-
+  const [filters, setFilters] = useState({status: null});
   const [isShowLangDlg, setShowLangDlg] = React.useState(false);
   const [langList, setLangList] = useState([]);
-
   const [selectedEvent, setEvent] = useState('');
   const [selectedLang, setLanguage] = useState('');
   const isTabletOrMobile = useMediaQuery({ maxWidth: 1224 })
   const [rating, setRating] = React.useState(0);
 
   const openLangDlg = async (eventId) => {
-    const user = window.localStorage.getItem('user')
-    console.log("user", user)
-    if(user){
-      const userObj = JSON.parse(user)
-      try{
-        const data = await broadcasterEventApi.getRate(userObj.id, eventId);
-        if(data.rating){
-          setRating(parseFloat(data.rating))
-        }
-      }catch (err) {
+    // const user = window.localStorage.getItem('user')
+    // console.log("user", user)
+    // if(user){
+    //   const userObj = JSON.parse(user)
+    //   try{
+    //     const data = await broadcasterEventApi.getRate(userObj.id, eventId);
+    //     if(data.rating){
+    //       setRating(parseFloat(data.rating))
+    //     }
+    //   }catch (err) {
 
-      }
+    //   }
       setEvent(eventId)
       setShowLangDlg(true);
-    }
+    // }
   };
 
   const closeLangDlgAndStart = () => {
@@ -91,8 +68,12 @@ const BroadCasterHome = () => {
 
   const getEvents = async () => {
     try{
-      const data = await broadcasterEventApi.getAllEvent();
-
+      let userObj = null;
+      const user = window.localStorage.getItem('user')
+      if(user){
+        userObj = JSON.parse(user);
+      }
+      const data = await broadcasterEventApi.getAllEvent((userObj !== undefined && userObj != null && userObj.id !== undefined) ? userObj.id : null);
       if(mounted.current){
         setEventList(data);
       }
@@ -121,26 +102,21 @@ const BroadCasterHome = () => {
   const applyFilters = (eventList, query, filters) => eventList
     .filter((event) => {
       let matches = true;
-
       if (query) {
         const properties = ['name', 'email'];
         let containsQuery = false;
-
         properties.forEach((property) => {
           if (event.name.toLowerCase().includes(query.toLowerCase())) {
             containsQuery = true;
           }
         });
-
         if (!containsQuery) {
           matches = false;
         }
       }
-
       if (filters.status && event.status !== filters.status) {
         matches = false;
       }
-
       return matches;
     });
 
@@ -164,19 +140,14 @@ const BroadCasterHome = () => {
       alert("No Selected Language")
       return
     }
-    console.log("selected language", selectedLang)
     if(navigator.mediaDevices){
       try{
         const user = window.localStorage.getItem('user')
-        console.log("user", user)
         if(user){
           const userObj = JSON.parse(user)
-          console.log("userObj", userObj)
           const res = await broadcasterEventApi.createBroadcastChannel({eventId: selectedEvent, userId :userObj.id, language: selectedLang})
-          console.log("streamId", res)
           navigate('/broadcaster/broadcast', {state : {streamId : res.data.streamId, selectedEvent}});
         }
-      
       } catch (err){
         console.log(err);
       }
@@ -188,11 +159,32 @@ const BroadCasterHome = () => {
   const filteredeventList = applyFilters(eventList, query, filters);
   const paginatedeventList = applyPagination(filteredeventList, page, limit);
 
+  // const handleChangeReservationStatus = (e, event) => {
+  //   let cur_eventList = eventList;
+  //   let update_event = event;
+  //   update_event.id = update_event._id;
+  //   delete update_event.broadcasts;
+  //   delete update_event.numberOfBroadCasters;
+  //   delete update_event.created_date;
+  //   delete update_event._id;
+  //   delete update_event.__v;
+  //   cur_eventList.map(event=>{
+  //     if(event._id == update_event.id){
+  //       if (!e.target.checked) {
+  //         update_event.isReservation = 0;
+  //         event.isReservation = 0;
+  //       } else {
+  //         update_event.isReservation = 1;
+  //         event.isReservation = 1;
+  //       }
+  //     }
+  //   })
+  //   adminEventApi.updateEvent(update_event);
+  // };
+
   return (
     <>
-      <Helmet>
-        <title>Ipsum</title>
-      </Helmet>
+      <Helmet><title>Ipsum</title></Helmet>
       <Box sx={{flex: 1, mt: 8, marginInline: 30}}>
       <Scrollbar>
         <Card>
@@ -219,118 +211,74 @@ const BroadCasterHome = () => {
                 />
               </Box>
             </Box>
-            
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>
-                    Event Name
-                  </TableCell>
-                  {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      Created
-                    </TableCell>
-                  }
-                  {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      Updated
-                    </TableCell>
-                  }
-                   <TableCell>
-                    Category
-                  </TableCell>
- 
-                  <TableCell>
-                    Sub Category
-                  </TableCell>
-                  
-                  {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      Stage
-                    </TableCell>
-                  }
-                  {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      Country
-                    </TableCell>
-                  }
-                  {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      City
-                    </TableCell>
-                  }
-                  {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      Timezone
-                    </TableCell>
-                  }
-                  <TableCell>
-                  </TableCell>
+                  <TableCell>Event Name</TableCell>
+                  {!isTabletOrMobile && (
+                    <TableCell>Created</TableCell>
+                  )}
+                  {!isTabletOrMobile && (
+                    <TableCell>Updated</TableCell>
+                  )}
+                  <TableCell>Category</TableCell>
+                  <TableCell>Sub Category</TableCell>
+                  {!isTabletOrMobile && (
+                    <TableCell>Stage</TableCell>
+                  )}
+                  {!isTabletOrMobile && (
+                    <TableCell>Country</TableCell>
+                  )}
+                  {!isTabletOrMobile && (
+                    <TableCell>City</TableCell>
+                  )}
+                  {!isTabletOrMobile && (
+                    <TableCell>Timezone</TableCell>
+                  )}
+                  {/* {!isTabletOrMobile && (
+                    <TableCell>Feature</TableCell>
+                  )} */}
+                  <TableCell></TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paginatedeventList.map((item) => (
                   <TableRow
                     key={item._id}
-                    sx={{
-                      '&:last-child td': {
-                        border: 0
-                      },
-                    }}
+                    sx={{'&:last-child td': {border: 0}}}
                   >
-                  <TableCell>
-                    {item.name}
-                  </TableCell>
-                   {
-                    !isTabletOrMobile &&
+                  <TableCell>{item.name}</TableCell>
+                   {!isTabletOrMobile && (
+                    <TableCell>{moment(item.created_date).format('MM/DD/YYYY')}</TableCell>
+                   )}
+                   {!isTabletOrMobile && (
+                    <TableCell>{moment(item.created_date).format('MM/DD/YYYY')}</TableCell>
+                   )}
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell>{item.subCat}</TableCell>
+                   {!isTabletOrMobile && (
+                    <TableCell>{item.state}</TableCell>
+                   )}
+                   {!isTabletOrMobile && (
+                    <TableCell>{item.country}</TableCell>
+                   )}
+                   {!isTabletOrMobile && (
+                    <TableCell>{item.city}</TableCell>
+                   )}
+                   {!isTabletOrMobile && (
+                    <TableCell>{item.timeZone}</TableCell>
+                   )}
+                   {/* <TableCell>
+                    <Checkbox
+                      checked={item.isReservation}
+                      color="primary"
+                      onChange={(e) => handleChangeReservationStatus(e, item)}
+                    />
+                   </TableCell> */}
                     <TableCell>
-                      {moment(item.created_date).format('MM/DD/YYYY')}
+                      <img src={'/static/images/rate/' + (item.rating > 1 ? Math.ceil(item.rating) : 1) + '.png'} style={{width:"2rem"}}/>
                     </TableCell>
-                   }
-                   {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      {moment(item.created_date).format('MM/DD/YYYY')}
-                    </TableCell>
-                   }
-                  <TableCell>
-                    {item.category}
-                  </TableCell>
-
-                  <TableCell>
-                    {item.subCat}
-                  </TableCell>
-                   
-                   {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      {item.state}
-                    </TableCell>
-                   }
-                   {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      {item.country}
-                    </TableCell>
-                   }
-                   {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      {item.city}
-                    </TableCell>
-                   }
-                   {
-                    !isTabletOrMobile &&
-                    <TableCell>
-                      {item.timeZone}
-                    </TableCell>
-                   }
                     <TableCell sx={{p: 0}}>
                       <IconButton
                         color="secondary"
@@ -355,7 +303,6 @@ const BroadCasterHome = () => {
           rowsPerPage={limit}
           rowsPerPageOptions={[5, 10, 25]}
         />
-
         <Dialog
           fullWidth
           sx = {{maxWidth: 500, margin:'auto'}}
@@ -363,7 +310,6 @@ const BroadCasterHome = () => {
           keepMounted
         >
           <DialogTitle style = {{textAlign: 'center'}}>Select Language</DialogTitle>
-          
           <DialogContent>
             <Select
               native
@@ -382,7 +328,7 @@ const BroadCasterHome = () => {
                 </option>
               ))}
             </Select>
-            <Box mt={3} sx = {{display: 'flex', flexDirection: 'row'}}>
+            {/* <Box mt={3} sx = {{display: 'flex', flexDirection: 'row'}}>
               <Typography component="legend">Your Rating</Typography>
               <Rating
                 sx = {{marginLeft: 10}}
@@ -393,9 +339,8 @@ const BroadCasterHome = () => {
                   setRating(newValue);
                 }}
               />
-            </Box>
+            </Box> */}
           </DialogContent>
-
           <DialogActions>
             <Button onClick={()=>{ setShowLangDlg(false)}} color="primary">
               Cancel
@@ -404,7 +349,6 @@ const BroadCasterHome = () => {
               OK
             </Button>
           </DialogActions>
-
         </Dialog>
       </Box>
     </>

@@ -74,7 +74,6 @@ const HomePage = () => {
                 Pellentesque non auctor nisl, eget euismod purus.
               </div>
               <div className="txt-sub-desc">
-                <br />
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras
                 interdum porta mauris ac ultrices. Morbi euismod nibh vel urna
                 aliquam interdum sit amet a leo. Sed ac sollicitudin eros. Nulla
@@ -123,7 +122,6 @@ const HomePage = () => {
                 Integer tempus finibus. Aenean eu luctus ligula
               </div>
               <div className="txt-sub-desc">
-                <br />
                 <b style={{ color: '#d9461d' }}>
                   Nulla sollicitudin et quam vitae dictum. Nullam vel dignissim
                   neque. Donec ut eleifend diam. Praesent sed est velit.{' '}

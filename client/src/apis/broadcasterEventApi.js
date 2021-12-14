@@ -2,10 +2,10 @@ import { Server } from '../config';
 import axios from 'axios';
 
 class BroadCasterEventApi{
-    async getAllEvent(){
+    async getAllEvent(userId=null){
       return new Promise((resolve, reject) => {
         axios
-            .get(`${Server.baseUrl}/event`)
+            .get(`${Server.baseUrl}/event`, { params: { userId } })
             .then(res => {
                 resolve(res.data);
             })
@@ -90,6 +90,24 @@ class BroadCasterEventApi{
                     resolve(res.data);
                 })
                 .catch(err => {
+                    reject(new Error(err.response?.data?.msg));
+                });
+        });
+    }
+
+    async getViewerCounter(streamId){
+        return new Promise((resolve, reject) => {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            axios
+                .post(`${Server.baseUrl}/event/getViewerCounter`, { streamId }, config)
+                .then(res => {
+                    resolve(res.data.viewerCount);
+                })
+                .catch((err) => {
                     reject(new Error(err.response?.data?.msg));
                 });
         });

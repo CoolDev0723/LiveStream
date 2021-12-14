@@ -14,6 +14,7 @@ class AuthApi {
           }
         };
 
+        console.log("correct ---")
         axios
           .post(`${Server.baseUrl}/auth/login`, body, config)
           .then(res => {
