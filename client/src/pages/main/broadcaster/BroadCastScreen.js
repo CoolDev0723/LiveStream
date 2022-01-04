@@ -40,9 +40,9 @@ const BroadCastHome = () => {
   };
 
   var appName = '/WebRTCAppEE';
-  var hostAddress = 'portal.coengeenantmedia.com';
+  var hostAddress = 'antmedia.micheros.com';
   var websocketURL =
-    'ws://' + '206.81.14.71' + ':5080' + appName + '/websocket';
+    'ws://' + '137.184.4.191' + ':5080' + appName + '/websocket';
 
   if (window.location.protocol.startsWith('https')) {
     websocketURL = 'wss://' + hostAddress + ':5443' + appName + '/websocket';
@@ -134,8 +134,10 @@ const BroadCastHome = () => {
       return onEndPublish();
     });
 
-    const checkViewerCountInterval = setInterval(async()=>{
-      const curViewerCount = await broadcasterEventApi.getViewerCounter(streamId);
+    const checkViewerCountInterval = setInterval(async () => {
+      const curViewerCount = await broadcasterEventApi.getViewerCounter(
+        streamId
+      );
       setViewerCount(curViewerCount);
     }, 1000 * 3);
 
@@ -146,13 +148,13 @@ const BroadCastHome = () => {
     };
   }, []);
 
-  const onStartPublish = async() => {
+  const onStartPublish = async () => {
     if (newWebRTCAdapter) {
       newWebRTCAdapter.publish(streamId);
     }
     const audio = await navigator.mediaDevices.getUserMedia({
       audio: true,
-      video: false
+      video: false,
     });
     setAudio(audio);
   };
@@ -230,7 +232,12 @@ const BroadCastHome = () => {
                   <div>
                     <AudioAnalyser audio={audio} />
                   </div>
-                  <div>Number of listeners : <span style={{color:viewerCount > 0 ? "red" : ""}}>{viewerCount}</span></div>
+                  <div>
+                    Number of listeners :{' '}
+                    <span style={{ color: viewerCount > 0 ? 'red' : '' }}>
+                      {viewerCount}
+                    </span>
+                  </div>
                 </>
               ) : (
                 <Button

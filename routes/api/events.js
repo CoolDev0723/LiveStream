@@ -28,29 +28,30 @@ router.get('/', async (req, res) => {
     if (!events) throw Error('No events exist');
     let rate_events = [];
     const { userId } = req.query;
-    if(userId !== undefined && userId != null){
+    if (userId !== undefined && userId != null) {
       var o_id = new mongo.ObjectID(userId);
-      const userRes = await User.findOne({ '_id' : o_id });
-      if (userRes){
-        const ratesRes = await Rate.find({userId: o_id});
-        if(ratesRes){
-          for(let i=0; i < events.length; i++){
+      const userRes = await User.findOne({ _id: o_id });
+      if (userRes) {
+        const ratesRes = await Rate.find({ userId: o_id });
+        if (ratesRes) {
+          for (let i = 0; i < events.length; i++) {
             let cur_event = JSON.parse(JSON.stringify(events[i]));
-            let totalRate = 0; 
+            let totalRate = 0;
             let rateCount = 0;
-            ratesRes.map(rateRes=>{
-              if(rateRes.eventId.toString() == events[i]._id.toString()){
+            ratesRes.map((rateRes) => {
+              if (rateRes.eventId.toString() == events[i]._id.toString()) {
                 totalRate += parseFloat(rateRes.rating);
                 rateCount++;
               }
             });
-            cur_event.rating = rateCount > 0 ? (totalRate/rateCount).toFixed(2) : 0;
+            cur_event.rating =
+              rateCount > 0 ? (totalRate / rateCount).toFixed(2) : 0;
             rate_events.push(cur_event);
           }
         }
       }
     }
-    if(rate_events.length > 0){
+    if (rate_events.length > 0) {
       res.json(rate_events);
     } else {
       res.json(events);
@@ -165,8 +166,16 @@ router.post('/edit', async (req, res) => {
 
     const updatedEvent = await Event.updateOne(
       { _id: o_id },
-      { name, description, category, subCat, country, city, state, timeZone
-        // , isReservation 
+      {
+        name,
+        description,
+        category,
+        subCat,
+        country,
+        city,
+        state,
+        timeZone,
+        // , isReservation
       }
     );
 
@@ -275,6 +284,59 @@ router.post('/stopBroadcast', async (req, res) => {
 router.post('/getBroadcasts', async (req, res) => {
   const { category, language } = req.body;
   try {
+    let data = [];
+
+    const broadcasts = await BroadCast.find({ isBroadcasting: true, language });
+    const eventData = await Event.find({ category });
+
+    for (let i = 0; i < eventData.length; i++) {
+      let cur_event = JSON.parse(JSON.stringify(eventData[i]));
+      cur_event.broadcasts = [];
+
+      for (let j = 0; j < eventData[i].broadcasts.length; j++) {
+        let broadcast = broadcasts.find(
+          (broadcast) => broadcast._id.toString() == eventData[i].broadcasts[j]
+        );
+        if (broadcast !== undefined) {
+          // Calculate rate
+          let cur_broadcast = JSON.parse(JSON.stringify(broadcast));
+          cur_broadcast.rating = 0;
+          const ratesRes = await Rate.find({
+            eventId: eventData[i]._id,
+            userId: cur_broadcast.user,
+          });
+
+          if (ratesRes) {
+            let totalRate = 0;
+            ratesRes.map((rateRes) => {
+              totalRate += parseFloat(rateRes.rating);
+            });
+            cur_broadcast.rating = (totalRate / ratesRes.length).toFixed(2);
+
+            // Check if rate is NaN
+            if (isNaN(cur_broadcast.rating)) {
+              cur_broadcast.rating = 0;
+            }
+          }
+
+          // Append User Info
+          const userData = await User.findOne({ _id: cur_broadcast.user });
+          cur_broadcast.user = userData;
+          cur_event.broadcasts.push(cur_broadcast);
+        }
+      }
+      data.push(cur_event);
+    }
+    res.json(data);
+  } catch (e) {
+    logger.error('get broadcasts error', e.message);
+    res.status(400).json({ msg: e.message });
+  }
+});
+
+router.post('/getBroadcasts/old', async (req, res) => {
+  const { category, language } = req.body;
+  try {
     if (category) {
       const resCat = await Category.findOne({ name: category });
       if (!resCat) throw Error('Category does not exist');
@@ -283,55 +345,32 @@ router.post('/getBroadcasts', async (req, res) => {
     if (!resLang) throw Error('Language does not exist');
     let data = [];
     const broadcasts = await BroadCast.find({ isBroadcasting: true, language });
-    const eventData = await Event.find({category});
-    for (let i = 0; i < eventData.length; i++) {
-      let cur_event = JSON.parse(JSON.stringify(eventData[i]));
-      cur_event.broadcasts = [];
-      for (let j = 0; j < eventData[i].broadcasts.length; j++) {
-        let broadcast = broadcasts.find((broadcast) => broadcast._id.toString() == eventData[i].broadcasts[j]);
-        if(broadcast !== undefined){
-          let cur_broadcast = JSON.parse(JSON.stringify(broadcast));
-          cur_broadcast.rating = 0;
-          const ratesRes = await Rate.find({eventId: eventData[i]._id, userId: cur_broadcast.user});
-          if(ratesRes){
-            let totalRate = 0; 
-            ratesRes.map(rateRes=>{
-              totalRate += parseFloat(rateRes.rating);
-            });
-            cur_broadcast.rating = (totalRate/ratesRes.length).toFixed(2);
-          }
-          console.log('cur_broadcast', cur_broadcast);
-          cur_event.broadcasts.push(cur_broadcast);
-        }
+
+    for (let i = 0; i < broadcasts.length; i++) {
+      const res = category
+        ? await Event.findOne({ broadcasts: broadcasts[i]._id, category })
+        : await Event.findOne({ broadcasts: broadcasts[i]._id });
+      const isDuplicated = data.find(
+        (event) => event._id == res._id.toString()
+      );
+
+      if (!isDuplicated && res) {
+        const resPop = await res
+          .populate({
+            path: 'broadcasts',
+            model: 'BroadCast',
+            match: { isBroadcasting: true },
+            populate: {
+              path: 'user',
+              model: 'User',
+            },
+          })
+          .execPopulate();
+
+        data.push(resPop);
       }
-      data.push(cur_event);
     }
     res.json(data);
-    // for (let i = 0; i < broadcasts.length; i++) {
-    //   const res = category
-    //     ? await Event.findOne({ broadcasts: broadcasts[i]._id, category })
-    //     : await Event.findOne({ broadcasts: broadcasts[i]._id });
-    //   const isDuplicated = data.find(
-    //     (event) => event._id == res._id.toString()
-    //   );
-
-    //   if (!isDuplicated && res) {
-    //     const resPop = await res
-    //       .populate({
-    //         path: 'broadcasts',
-    //         model: 'BroadCast',
-    //         match: { isBroadcasting: true },
-    //         populate: {
-    //           path: 'user',
-    //           model: 'User',
-    //         },
-    //       })
-    //       .execPopulate();
-
-    //     data.push(resPop);
-    //   }
-    // }
-    // res.json(data);
   } catch (e) {
     logger.error('get broadcasts error', e.message);
     res.status(400).json({ msg: e.message });
@@ -344,7 +383,12 @@ router.post('/getViewerCounter', async (req, res) => {
   try {
     const resAnt = await axios.get(`${ANT_URL}/rest/v2/broadcasts/${streamId}`);
     if (resAnt.data) {
-      res.json({ viewerCount: resAnt.data.hlsViewerCount + resAnt.data.webRTCViewerCount });
+      // res.json({
+      //   viewerCount: resAnt.data.hlsViewerCount + resAnt.data.webRTCViewerCount,
+      // });
+      res.json({
+        viewerCount: resAnt.data.webRTCViewerCount,
+      });
     } else {
       res.json({ viewerCount: 0 });
     }

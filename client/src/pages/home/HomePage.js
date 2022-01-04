@@ -1,15 +1,17 @@
-import { Box, Button, Grid, Typography } from '@material-ui/core';
+import { Box, Button, Grid, Dialog, DialogTitle } from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import gtm from '../../lib/gtm';
 import { styles } from './styles';
 import './index.scss';
+import React from 'react';
 
-const pages = ['LOREM', 'IPSUM', 'DOLOR', 'SIT', 'AMET'];
+const pages = ['Contact', 'Download', 'Login', 'Registration'];
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const [showContactDlg, setShowContactDlg] = React.useState(false);
 
   useEffect(() => {
     gtm.push({ event: 'page_view' });
@@ -21,6 +23,25 @@ const HomePage = () => {
 
   const goToRegister = () => {
     navigate('/register');
+  };
+
+  const goToAction= (page) => {
+    if(page == 'Contact'){
+      setShowContactDlg(true);
+    }
+    if(page == 'Download'){
+      window.location.href = "https://play.google.com/store/apps/details?id=com.micheros";
+    }
+    if(page == 'Login'){
+      goToLogin();
+    }
+    if(page == 'Registration'){
+      goToRegister();
+    }
+  }
+
+  const closeContactDlg = () => {
+    setShowContactDlg(false);
   };
 
   return (
@@ -57,6 +78,9 @@ const HomePage = () => {
                         justifyContent: 'center',
                         fontWeight: 'bold',
                       }}
+                      onClick={() => {
+                        goToAction(page);
+                      }}
                     >
                       {page}
                     </Button>
@@ -70,30 +94,21 @@ const HomePage = () => {
         <div className="home-content">
           <div className="sub-content">
             <div className="view-sub-left-content">
-              <div className="txt-sub-title">
-                Pellentesque non auctor nisl, eget euismod purus.
-              </div>
+              <div className="txt-sub-title">Choose your own commentator!</div>
               <div className="txt-sub-desc">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras
-                interdum porta mauris ac ultrices. Morbi euismod nibh vel urna
-                aliquam interdum sit amet a leo. Sed ac sollicitudin eros. Nulla
-                interdum vel libero vitae fringilla. Curabitur a fringilla
-                ligula, sed aliquam risus.
+                <b>It is free!</b> <br />
+                <br />
+                Enjoy your favorite games with a commentator you like. Download
+                the app, select the language and choose your favorite
+                commentator. You can synchronize the commentator with any
+                tv/video stream.
                 <br />
                 <br />
-                <b>
-                  Maecenas mattis lectus id ligula volutpat, vel volutpat magna
-                  porta.
-                </b>{' '}
-                Ut ac neque auctor, dapibus turpis sed, molestie sem. Nam
-                scelerisque mi lectus, vel posuere enim accumsan in. Nam tortor
-                diam, sagittis a suscipit ut, sagittis at lectus. Donec vitae
-                vestibulum mi. Donec in
               </div>
               <div className="black-box">
                 <div className="btn-desc">
                   <div className="btn-google-desc-txt">
-                    MADMICS.LIVE APP IS NOW AVAILABLE!
+                    MicHeroS APP is now availlable!
                   </div>
                 </div>
                 <div
@@ -102,6 +117,10 @@ const HomePage = () => {
                     alignItems: 'center',
                     width: '50%',
                     height: '100%',
+                    cursor:'pointer'
+                  }}
+                  onClick={() => {
+                    goToAction("Download");
                   }}
                 >
                   <img
@@ -118,24 +137,22 @@ const HomePage = () => {
           </div>
           <div className="sub-content">
             <div className="view-sub-right-content">
-              <div className="txt-sub-title">
-                Integer tempus finibus. Aenean eu luctus ligula
-              </div>
+              <div className="txt-sub-title">Become commentator yourself.</div>
               <div className="txt-sub-desc">
+                <br />
                 <b style={{ color: '#d9461d' }}>
-                  Nulla sollicitudin et quam vitae dictum. Nullam vel dignissim
-                  neque. Donec ut eleifend diam. Praesent sed est velit.{' '}
+                  Do you have knowledge about sports in general or a specific
+                  team? Give you commentary then live. Others can hear you and
+                  combine it a feed so they can hear the commentary they like.
+                  Register yourself and start your feed when your team/sport is
+                  live.{' '}
                 </b>
                 <br />
                 <br />
-                Aliquam eget eros iaculis, vehicula dui vel, accumsan enim.
-                Vivamus non hendrerit velit. Phasellus id dui ac dui fringilla
-                tincidunt. Nulla vel nulla at orci cursus laoreet quis pharetra
-                urna. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Nulla sit amet convallis tellus, ornare tincidunt augue. Nulla
-                eros dolor, vehicula non luctus a, malesuada at felis.
-                Pellentesque elit lacus, varius eu lectus id, molestie vehicula
-                elit.
+                You only need a great voice, a computer and a good microphone.
+                And if you have a large group of fans listening to you, you can
+                earn money too. Do not wait any longer and register now! You can
+                start your first live stream soon.
               </div>
               <div className="black-box">
                 <div
@@ -191,6 +208,9 @@ const HomePage = () => {
                     justifyContent: 'center',
                     fontWeight: 'bold',
                   }}
+                  onClick={() => {
+                    goToAction(page);
+                  }}
                 >
                   {page}
                 </Button>
@@ -200,6 +220,15 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+      <Dialog
+        fullWidth
+        sx={{ maxWidth: 500, margin: 'auto' }}
+        open={showContactDlg}
+        keepMounted
+        onClose={closeContactDlg}
+      >
+        <DialogTitle>Send a mail to Hello@MicHeros.com if you have a queston or want some info.</DialogTitle>
+      </Dialog>
     </>
   );
 };
