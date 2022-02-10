@@ -1,6 +1,7 @@
 import { createContext, useEffect, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import { authApi } from '../apis/authApi';
+import { useNavigate } from 'react-router-dom';
 
 const initialState = {
   isAuthenticated: false,
@@ -134,19 +135,25 @@ export const AuthProvider = (props) => {
   const register = async (email, name, phone, country, timezone) => {
     await authApi.register({ email, name, phone, country, timezone });
   };
+  
+  const navigate = useNavigate();
 
   const activateEmail = async (token, isLogin) => {
     const response = await authApi.activateEmail(token, isLogin);
-    window.localStorage.setItem('accessToken', response.token);
-    const user = response.user;
-
-    dispatch({
-      type: 'REGISTER',
-      payload: {
-        isAuthenticated: true,
-        user
-      }
-    });
+    if(response == "error"){
+      navigate('/login');
+    } else {
+      window.localStorage.setItem('accessToken', response.token);
+      const user = response.user;
+  
+      dispatch({
+        type: 'REGISTER',
+        payload: {
+          isAuthenticated: true,
+          user
+        }
+      });
+    }
   };
 
   const passwordRecovery = async (mail) => {

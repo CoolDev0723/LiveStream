@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
     };
     logger.info(`login user: ${JSON.stringify(userData)}`);
 
-    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: 3600 });
+    const token = jwt.sign(userData, JWT_SECRET, { expiresIn: 60 * 5 });
     if (!token) throw Error('Couldnt sign the token');
 
     let transporter = nodemailer.createTransport({
@@ -50,14 +50,14 @@ router.post('/login', async (req, res) => {
     });
 
     let mailOptions = {
-      from: '"MicHeroS team" <noreply@ipsum.com>',
+      from: '"MicHero team" <noreply@ipsum.com>',
       to: user.email.toString(),
       subject: 'Account Activation Link',
       html: `
       Hello,<br/><br/>You requested a magic link to login.<br/>Please click on the link below to login.<br/>
       <a href='${process.env.CLIENT_URL}/activateLogin/${token}'>Click Here</a><br/><br/>
       Regards,<br/><br/>
-      MicHeroS team
+      MicHero team
       `,
     };
 
@@ -170,7 +170,7 @@ router.post('/forgot-password', async (req, res) => {
     });
 
     let mailOptions = {
-      from: '"MicHeroS team" <noreply@ipsum.com>',
+      from: '"MicHero team" <noreply@ipsum.com>',
       to: email,
       subject: 'Reset Password Link',
       html: `

@@ -56,11 +56,11 @@ const Login = () => {
       <div className="home-main">
         <div style={styles.pc.viewLogo} className="home-logo">
           <img
-            src={'/static/images/home/logo.png'}
+            src={'/static/images/home/mobile_logo.png'}
             className="home-logo-img-pc"
           />
           <img
-            src={'/static/images/home/phone_logo.png'}
+            src={'/static/images/home/mobile_logo.png'}
             className="home-logo-img-phone"
           />
         </div>
@@ -217,7 +217,7 @@ const Login = () => {
         keepMounted
         onClose={closeContactDlg}
       >
-        <DialogTitle>Send a mail to Hello@MicHeros.com if you have a queston or want some info.</DialogTitle>
+        <DialogTitle>Send a mail to Hello@michero.live if you have a queston or want some info.</DialogTitle>
       </Dialog>
     </>
   );

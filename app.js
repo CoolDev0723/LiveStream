@@ -13,6 +13,7 @@ import eventRoutes from './routes/api/events';
 import categoryRoutes from './routes/api/categories';
 import subcategoryRoutes from './routes/api/subCategory';
 import langRoutes from './routes/api/language';
+import subscribeduserRoutes from './routes/api/subscribedusers';
 import logger from './middleware/logger';
 
 const { MONGO_URI } = config;
@@ -48,6 +49,7 @@ app.use('/event', eventRoutes);
 app.use('/category', categoryRoutes);
 app.use('/sub_category', subcategoryRoutes);
 app.use('/language', langRoutes);
+app.use('/subscribedusers', subscribeduserRoutes);
 
 // Serve static assets if in production
 if (process.env.NODE_ENV === 'production') {

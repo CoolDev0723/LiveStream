@@ -39,7 +39,7 @@ const BroadCasterDashboardNavbar = (props) => {
 
   return (
     <DashboardNavbarRoot {...other}>
-      <Toolbar sx={{ minHeight: 64}}>
+      <Toolbar sx={{ minHeight: 64, backgroundColor:"black"}}>
         <IconButton
           color="inherit"
           onClick={onSidebarMobileOpen}
@@ -53,9 +53,9 @@ const BroadCasterDashboardNavbar = (props) => {
         </IconButton>
         <Box sx={{justifyContent: 'center', marginTop: 1}}>
           <img
-            src="/static/images/simple_brand.png" 
+            src="/static/images/logo.png" 
             style={{
-              width: 40
+              width: 21.25,
             }}
           />
         </Box>

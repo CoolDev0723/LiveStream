@@ -35,7 +35,7 @@ import SearchIcon from '../../../icons/Search';
 import EditIcon from '../../../icons/EditIcon';
 import RecordIcon from '../../../icons/RecordIcon';
 import { useMediaQuery } from 'react-responsive';
-import Rating from '@material-ui/lab/Rating';
+// import Rating from '@material-ui/lab/Rating';
 // import { adminEventApi } from '../../../apis/adminEventApi';
 
 const BroadCasterHome = () => {
@@ -51,7 +51,7 @@ const BroadCasterHome = () => {
   const [selectedEvent, setEvent] = useState('');
   const [selectedLang, setLanguage] = useState('');
   const isTabletOrMobile = useMediaQuery({ maxWidth: 1224 });
-  const [rating, setRating] = React.useState(0);
+  // const [rating, setRating] = React.useState(0);
 
   const openLangDlg = async (eventId) => {
     // const user = window.localStorage.getItem('user')
@@ -173,6 +173,7 @@ const BroadCasterHome = () => {
             userId: userObj.id,
             language: selectedLang,
           });
+          console.log('res.data', res.data);
           navigate('/broadcaster/broadcast', {
             state: { streamId: res.data.streamId, selectedEvent },
           });
@@ -271,7 +272,6 @@ const BroadCasterHome = () => {
               </TableHead>
               <TableBody>
                 {paginatedeventList.map((item) => {
-                  console.log(item.rating);
                   return (
                     <TableRow
                       key={item._id}

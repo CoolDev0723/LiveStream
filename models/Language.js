@@ -6,6 +6,11 @@ const LanguageSchema = new Schema({
     type: String,
     required: true,
     unique: true
+  },
+  code: {
+    type: String,
+    required: true,
+    unique: true
   }
 });
 

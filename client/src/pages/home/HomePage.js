@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Dialog, DialogTitle } from '@material-ui/core';
+import { Box, Button, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -6,12 +6,17 @@ import gtm from '../../lib/gtm';
 import { styles } from './styles';
 import './index.scss';
 import React from 'react';
+import { subscribeduserApi } from '../../apis/subscribeduserApi';
 
 const pages = ['Contact', 'Download', 'Login', 'Registration'];
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [showContactDlg, setShowContactDlg] = React.useState(false);
+  const [showInputMailAddressDlg, setShowInputMailAddressDlg] = React.useState(false);
+  const [userMailAddress, setUserMailAddress] = React.useState("");
+  const [registerResultMessage, setRegisterResultMessage] = React.useState("");
+  const [registerResult, setRegisterResult] = React.useState(false);
 
   useEffect(() => {
     gtm.push({ event: 'page_view' });
@@ -44,6 +49,38 @@ const HomePage = () => {
     setShowContactDlg(false);
   };
 
+  const closeInputMailAddressDlgAndRegister = async() =>{
+    var validRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+    let error = false;
+    let message = "";
+    if(userMailAddress == ""){
+      message = "Email is required";
+      error = true;
+    } else if (userMailAddress.match(validRegex)) {
+      const res = await subscribeduserApi.registerUserMailAddress({
+        email: userMailAddress,
+      });
+      if(res.success == 1){
+        message = "Congratulation! You are registered successfully!";
+      } else if(res.exist == 1){
+        message = "Email already exists";
+      } else {
+        message = "Something went wrong adding the user";
+        error = true;
+      }
+    } else {
+      message = "Must be a valid email";
+      error = true;
+    }
+    setRegisterResult(error);
+    setRegisterResultMessage(message);
+  }
+
+  const handleChangeUserMailAddress = (e) =>{
+    let value = e.target.value;
+    setUserMailAddress(value.length > 255 ? userMailAddress : value);
+  }
+
   return (
     <>
       <Helmet>
@@ -52,11 +89,11 @@ const HomePage = () => {
       <div className="home-main">
         <div style={styles.pc.viewLogo} className="home-logo">
           <img
-            src={'/static/images/home/logo.png'}
+            src={'/static/images/home/mobile_logo.png'}
             className="home-logo-img-pc"
           />
           <img
-            src={'/static/images/home/phone_logo.png'}
+            src={'/static/images/home/mobile_logo.png'}
             className="home-logo-img-phone"
           />
         </div>
@@ -94,7 +131,7 @@ const HomePage = () => {
         <div className="home-content">
           <div className="sub-content">
             <div className="view-sub-left-content">
-              <div className="txt-sub-title">Choose your own commentator!</div>
+              <div className="txt-sub-title">Choose your own <br /> live commentator!</div>
               <div className="txt-sub-desc">
                 <b>It is free!</b> <br />
                 <br />
@@ -106,19 +143,8 @@ const HomePage = () => {
                 <br />
               </div>
               <div className="black-box">
-                <div className="btn-desc">
-                  <div className="btn-google-desc-txt">
-                    MicHeroS APP is now availlable!
-                  </div>
-                </div>
                 <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '50%',
-                    height: '100%',
-                    cursor:'pointer'
-                  }}
+                  className='google-play-box'
                   onClick={() => {
                     goToAction("Download");
                   }}
@@ -128,7 +154,22 @@ const HomePage = () => {
                     className="pc-google-play"
                   />
                   <img
-                    src={'/static/images/home/phone_google_play.png'}
+                    src={'/static/images/home/google_play.png'}
+                    className="phone-google-play"
+                  />
+                </div>
+                <div
+                  className='app-store-box'
+                  onClick={() => {
+                    setShowInputMailAddressDlg(true);
+                  }}
+                >
+                  <img
+                    src={'/static/images/home/appstore.png'}
+                    className="pc-google-play"
+                  />
+                  <img
+                    src={'/static/images/home/appstore.png'}
                     className="phone-google-play"
                   />
                 </div>
@@ -137,13 +178,13 @@ const HomePage = () => {
           </div>
           <div className="sub-content">
             <div className="view-sub-right-content">
-              <div className="txt-sub-title">Become commentator yourself.</div>
+              <div className="txt-sub-title">Become a <br /> live commentator!</div>
               <div className="txt-sub-desc">
                 <br />
                 <b style={{ color: '#d9461d' }}>
                   Do you have knowledge about sports in general or a specific
                   team? Give you commentary then live. Others can hear you and
-                  combine it a feed so they can hear the commentary they like.
+                  combine it with a TV/video feed so they can hear the commentary they like.
                   Register yourself and start your feed when your team/sport is
                   live.{' '}
                 </b>
@@ -227,7 +268,46 @@ const HomePage = () => {
         keepMounted
         onClose={closeContactDlg}
       >
-        <DialogTitle>Send a mail to Hello@MicHeros.com if you have a queston or want some info.</DialogTitle>
+        <DialogTitle>Send a mail to Hello@michero.live if you have a queston or want some info.</DialogTitle>
+      </Dialog>
+      <Dialog
+        fullWidth
+        sx={{ maxWidth: 500, margin: 'auto' }}
+        open={showInputMailAddressDlg}
+        keepMounted
+      >
+        <DialogTitle>iOS version will be available soon. Fill in your email address an we will in form you when it is available.</DialogTitle>
+        <DialogContent>
+          <TextField
+            error={registerResult}
+            fullWidth
+            helperText={registerResultMessage}
+            label="Email Address"
+            margin="normal"
+            name="email"
+            // onBlur={handleBlur}
+            onChange={handleChangeUserMailAddress}
+            type="email"
+            value={userMailAddress}
+            variant="outlined"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShowInputMailAddressDlg(false);
+              setRegisterResult(false);
+              setRegisterResultMessage("");
+              setUserMailAddress("");
+            }}
+            color="primary"
+          >
+            Close
+          </Button>
+          <Button onClick={closeInputMailAddressDlgAndRegister} color="primary">
+            Register
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );

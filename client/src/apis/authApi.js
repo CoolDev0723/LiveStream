@@ -78,14 +78,16 @@ class AuthApi {
             resolve(res.data);
           })
           .catch(err => {
-            console.error('[Auth Api]: ', err.response?.data?.msg);
-            reject(new Error(err.response?.data?.msg));
-            return
+            // console.error('[Auth Api]: ', err.response?.data?.msg);
+            // reject(new Error(err.response?.data?.msg));
+            // return
+            resolve('error');
           });
 
       } catch (err) {
-        console.error('[Auth Api]: ', err);
-        reject(new Error('Internal server error'));
+        // console.error('[Auth Api]: ', err);
+        // reject(new Error('Internal server error'));
+        resolve('error');
       }
     });
   }

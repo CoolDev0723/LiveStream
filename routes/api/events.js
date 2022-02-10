@@ -14,7 +14,7 @@ import logger from '../../middleware/logger';
 var mongo = require('mongodb');
 const router = Router();
 
-const { ANT_URL } = config;
+const { ANT_URL, REST_COUNTRIES_URL } = config;
 
 const configHeader = {
   headers: {
@@ -282,17 +282,28 @@ router.post('/stopBroadcast', async (req, res) => {
 });
 
 router.post('/getBroadcasts', async (req, res) => {
-  const { category, language } = req.body;
+  const { category, country_code } = req.body;
   try {
     let data = [];
-
-    const broadcasts = await BroadCast.find({ isBroadcasting: true, language });
-    const eventData = await Event.find({ category });
-
+    const broadcasts = await BroadCast.find({ isBroadcasting: true });
+    const resRESTCOUNTRIES = (country_code !== undefined && country_code != null && country_code != "") ? await axios.get(`${REST_COUNTRIES_URL}/lang/${country_code}`) : null;
+    const eventData = (category !== undefined && category != null && category != "") ? await Event.find({ category }) : await Event.find({ });
     for (let i = 0; i < eventData.length; i++) {
       let cur_event = JSON.parse(JSON.stringify(eventData[i]));
+      let include_language_filter = false;
+      if(country_code !== undefined && country_code != null && country_code != ""){
+        if(cur_event.country != ""){
+          resRESTCOUNTRIES.data.map(country=>{
+            if(country.name == cur_event.country || country.nativeName == cur_event.country){
+              include_language_filter = true;
+            }
+          });
+        }
+      } else {
+        include_language_filter = true;
+      }
+      if(!include_language_filter){continue;}
       cur_event.broadcasts = [];
-
       for (let j = 0; j < eventData[i].broadcasts.length; j++) {
         let broadcast = broadcasts.find(
           (broadcast) => broadcast._id.toString() == eventData[i].broadcasts[j]
@@ -301,27 +312,24 @@ router.post('/getBroadcasts', async (req, res) => {
           // Calculate rate
           let cur_broadcast = JSON.parse(JSON.stringify(broadcast));
           cur_broadcast.rating = 0;
-          const ratesRes = await Rate.find({
-            eventId: eventData[i]._id,
-            userId: cur_broadcast.user,
-          });
-
+          const ratesRes = await Rate.find({eventId: eventData[i]._id, userId: cur_broadcast.user});
           if (ratesRes) {
             let totalRate = 0;
             ratesRes.map((rateRes) => {
               totalRate += parseFloat(rateRes.rating);
             });
             cur_broadcast.rating = (totalRate / ratesRes.length).toFixed(2);
-
             // Check if rate is NaN
             if (isNaN(cur_broadcast.rating)) {
               cur_broadcast.rating = 0;
             }
           }
-
           // Append User Info
           const userData = await User.findOne({ _id: cur_broadcast.user });
           cur_broadcast.user = userData;
+          // Append Language code
+          const languageInfo = await Language.findOne({ language: cur_broadcast.language });
+          cur_broadcast.country_code = languageInfo.code;
           cur_event.broadcasts.push(cur_broadcast);
         }
       }

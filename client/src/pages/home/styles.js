@@ -1,5 +1,3 @@
-import { textAlign } from "@material-ui/system";
-
 export const styles = {
   pc:{
     viewBg: {
@@ -16,9 +14,6 @@ export const styles = {
     viewMic: {
       width: '100%',
       height:"calc(100% - 260px)"
-      // backgroundImage:"url(/static/images/home/mic.png)",
-      // backgroundRepeat: 'no-repeat',
-      // backgroundPosition: 'center 1rem',
     },
     viewContent: {
       width: '100%',

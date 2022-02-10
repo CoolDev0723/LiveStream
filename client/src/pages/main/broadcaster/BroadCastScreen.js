@@ -7,6 +7,7 @@ import { WebRTCAdaptor } from './../../../lib/webrtc-js/webrtc_adaptor';
 import { useLocation } from 'react-router-dom';
 import './index.scss';
 import AudioAnalyser from './AudioAnalyser';
+import React from 'react';
 
 var newWebRTCAdapter = null;
 var isBack = false;
@@ -20,6 +21,7 @@ const BroadCastHome = () => {
   const [selectedEvent] = useState(state ? state.selectedEvent : '');
   const [audio, setAudio] = useState(null);
   const [viewerCount, setViewerCount] = useState(0);
+  const [rating, setRating] = React.useState(0);
 
   const pc_config = {
     iceServers: [
@@ -48,7 +50,19 @@ const BroadCastHome = () => {
     websocketURL = 'wss://' + hostAddress + ':5443' + appName + '/websocket';
   }
 
-  useEffect(() => {
+  useEffect(async() => {
+    const user = window.localStorage.getItem('user')
+    console.log("user", user)
+    if(user){
+      const userObj = JSON.parse(user)
+      try{
+        const data = await broadcasterEventApi.getRate(userObj.id, state ? state.selectedEvent : '');
+        if(data.rating){
+          setRating(data.rating);
+        }
+      } catch (err) {
+      }
+    }
     newWebRTCAdapter = new WebRTCAdaptor({
       websocket_url: websocketURL,
       mediaConstraints: mediaConstraints,
@@ -134,18 +148,20 @@ const BroadCastHome = () => {
       return onEndPublish();
     });
 
+    return () => {
+      isUnMounted = true;
+      onEndPublish();
+    };
+  }, []);
+
+  useEffect(() => {
     const checkViewerCountInterval = setInterval(async () => {
       const curViewerCount = await broadcasterEventApi.getViewerCounter(
         streamId
       );
       setViewerCount(curViewerCount);
     }, 1000 * 3);
-
-    return () => {
-      isUnMounted = true;
-      onEndPublish();
-      clearInterval(checkViewerCountInterval);
-    };
+    return () => clearInterval(checkViewerCountInterval);
   }, []);
 
   const onStartPublish = async () => {
@@ -215,6 +231,7 @@ const BroadCastHome = () => {
         <Card sx={{ width: '100%', height: '100%' }}>
           <CardContent>
             <Box>
+              <div>Score : {rating}</div>
               <p id="player">
                 <audio id="localVideo" controls muted></audio>
               </p>
