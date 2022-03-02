@@ -12,7 +12,6 @@ const router = Router();
 
 router.post('/login', async (req, res) => {
   const { email } = req.body;
-
   try {
     // Check for existing user
     const user = await User.findOne({
@@ -67,6 +66,48 @@ router.post('/login', async (req, res) => {
     });
   } catch (e) {
     logger.error('log in error', e.message);
+    res.status(400).json({ msg: e.message });
+  }
+});
+
+router.post('/register', async (req, res) => {
+  const { email, name, phone, country, timezone, type } = req.body;
+  try {
+    const userName = await User.findOne({ name });
+    if (userName) throw Error('UserName already exists');
+    const user = await User.findOne({ email });
+    if (user) throw Error('User already exists');
+    // const salt = await bcrypt.genSalt(10);
+    // if (!salt) throw Error('Something went wrong with bcrypt');
+    // const hash = await bcrypt.hash(password, salt);
+    // if (!hash) throw Error('Something went wrong hashing the password');
+    const token = jwt.sign({ email, name, phone, country, timezone, type, status: false }, JWT_SECRET, {
+      expiresIn: 60 * 5
+    });
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'blackhorse00911@gmail.com',
+        pass: 'Adam$0911!',
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+    let mailOptions = {
+      from: '"MicHero team" <noreply@ipsum.com>',
+      to: email,
+      subject: 'Account Activation Link',
+      html: `
+      <h2>Please click on given link to activate your account<h2>
+      <a href='${process.env.CLIENT_URL}/activate/${token}'>Click Here</a>
+      `
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) throw Error('Sending Email went wrong');
+      res.json({ msg: 'Email has been sent, kindly activate your account' });
+    });
+  } catch (e) {
     res.status(400).json({ msg: e.message });
   }
 });
@@ -155,14 +196,14 @@ router.post('/forgot-password', async (req, res) => {
     if (!user) throw Error('User does not exist');
 
     const token = jwt.sign({ id: user._id }, JWT_SECRET, {
-      expiresIn: 3600,
+      expiresIn: 60 * 5,
     });
 
     let transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'whitesnow9734@gmail.com',
-        pass: 'isop199734',
+        user: 'blackhorse00911@gmail.com',
+        pass: 'Adam$0911!',
       },
       tls: {
         rejectUnauthorized: false,
